@@ -73,11 +73,18 @@ var (
 	workspaceShowCmd = &cobra.Command{
 		Use:   "show",
 		Short: "Show Workspace",
-		Long:  "Show Workspace in a TFx Organization.",
+		Long:  "Show Workspace(s) in a TFx Organization.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return workspaceShow(
-				getTfxClientContext(),
-				*viperString("name"))
+			names := viperStringSlice("name")
+			for _, name := range names {
+				err := workspaceShow(
+					getTfxClientContext(),
+					name)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
 		},
 	}
 )
@@ -92,7 +99,7 @@ func init() {
 	workspaceListCmd.Flags().BoolP("all", "a", false, "List All Organizations Workspaces (optional).")
 
 	// `tfx workspace show`
-	workspaceShowCmd.Flags().StringP("name", "n", "", "Name of the workspace.")
+	workspaceShowCmd.Flags().StringSliceP("name", "n", []string{}, "Name(s) of the workspace(s). Can be specified multiple times.")
 	workspaceShowCmd.MarkFlagRequired("name")
 
 	rootCmd.AddCommand(workspaceCmd)
